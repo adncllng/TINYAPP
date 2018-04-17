@@ -5,6 +5,11 @@ app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+
+
+
+
+
 let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -48,8 +53,14 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = req.body.longURL;
 
   console.log(urlDatabase);  // debug statement to see POST parameters
-  res.redirect(`/urls/${shortURL}`);        // Respond with 'Ok' (we will replace this)
+  res.redirect('/urls');        // Respond with 'Ok' (we will replace this)
 });
+
+
+app.post("/urls/:id/delete",(req,res) => {
+  delete (urlDatabase[req.params.id])
+  res.redirect('/urls')
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
