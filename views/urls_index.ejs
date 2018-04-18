@@ -11,11 +11,12 @@
   <% Object.keys(urls).forEach(url => { %>
 
     <li> <%= url %> : <%= urls[url] %>
-    <form method="POST" action="/urls/<%=url%>/delete">
-      <input type="submit" value="Delete">
-       <a href='/urls/<%=url%>'>EDIT</a>
+      <form method="POST" action="/urls/<%=url%>/delete">
+      <button type="submit" value="Delete">DELETE</button>
      </form>
+     <a href='/urls/<%=url%>'>edit</a>
     </li>
+
   <% }) %>
   </ul>
   <p><a href='/urls/new'>ADD</a></p>
