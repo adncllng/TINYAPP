@@ -7,10 +7,25 @@ app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
+
+
 let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
 
 app.get("/", (req, res) => {
   res.end("Hello!");
@@ -51,27 +66,31 @@ app.post("/urls", (req, res) => {
   res.redirect('/urls');        // Respond with 'Ok' (we will replace this)
 });
 
-app.post("/urls/:id/delete",(req,res) => {
+app.post("/urls/:id/delete",(req, res) => {
   delete (urlDatabase[req.params.id])
   res.redirect('/urls')
 })
 
-app.post("/urls/:id/update",(req,res) => {
+app.post("/urls/:id/update",(req, res) => {
   urlDatabase[req.params.id] = req.body.newLongURL;
   console.log(req.body)
   res.redirect('/urls')
 })
 
-app.post("/login", (req,res) => {
+app.post("/login", (req, res) => {
   console.log(req.body.username)
   res.cookie('username', req.body.username)
   res.redirect('/urls')
 })
 
-app.post("/logout", (req,res) => {
+app.post("/logout", (req, res) => {
   console.log(req.body.username)
   res.clearCookie('username')
   res.redirect('/urls')
+})
+
+app.post("/register", (req, res) => {
+  console.log(req);
 })
 
 app.listen(PORT, () => {
