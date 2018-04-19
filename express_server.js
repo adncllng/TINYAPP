@@ -2,7 +2,8 @@
 const cookieParser = require('cookie-parser');
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 8080; // default port 8080
+const PORT = process.env.PORT || 8080;
+const bcrypt = require('bcrypt');
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 
@@ -17,8 +18,15 @@ app.use(cookieParser());
 
 
 let urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    url: "http://www.lighthouselabs.ca",
+    userID: "userRandomID"
+  },
+  "b2xSn2":{
+    url: "http://www.lightshouselabs.ca",
+    userID: "userRandomID2"
+  }
+
 };
 
 const users = {
@@ -60,7 +68,11 @@ app.get("/urls/new", (req, res) => {
   let templateVars = {
     user: users[req.cookies.user_id],
   }
-  res.render("urls_new", templateVars);
+  if(templateVars.user){
+    res.render("urls_new", templateVars);
+  }else{
+    res.render("login")
+  }
 });
 
 app.get("/urls", (req, res) => {
@@ -159,6 +171,16 @@ function getId(object, key, value){
   for (let id in object){
     if (object[id][key]==[value]) return id;
   }
+}
+function urlsForUserId(user_id){
+  let urls = {};
+  for(var short in urlDatabase){
+    console.log(short)
+    if(urlDatabase[short].userID == user_id){
+      urls[short] = urlDatabase[short].url
+    }
+  }
+  return urls
 }
 
 
