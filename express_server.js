@@ -78,7 +78,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = {
     user: users[req.cookies.user_id],
-    urls: urlDatabase
+    urls: urlsForUserId(req.cookies.user_id)
   };
    console.log(users)
   res.render("urls_index", templateVars);
@@ -93,9 +93,12 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.post("/urls", (req, res) => {
+app.post("/urls/new", (req, res) => {
   var shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL] = {
+    url: req.body.longURL,
+    userID: req.cookies.user_id
+  }
 
   console.log(urlDatabase);  // debug statement to see POST parameters
   res.redirect('/urls');        // Respond with 'Ok' (we will replace this)
