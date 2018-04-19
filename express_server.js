@@ -60,7 +60,7 @@ app.get("/register", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   console.log()
-  let longURL = urlDatabase[req.params.shortURL]
+  let longURL = urlDatabase[req.params.shortURL].url
   res.redirect(longURL);
 });
 
@@ -119,7 +119,7 @@ app.post("/urls/:id/update",(req, res) => {
   urlDatabase[req.params.id].url = req.body.newLongURL;
 
   console.log(req.body)
-  res.redirect('/urls')
+  res.redirect('/urls');
 }else {
   res.redirect('/urls');
 }
