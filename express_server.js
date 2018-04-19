@@ -59,7 +59,6 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls/new", (req, res) => {
   let templateVars = {
     user: users[req.cookies.user_id],
-    username: req.cookies["username"]
   }
   res.render("urls_new", templateVars);
 });
@@ -105,7 +104,6 @@ app.post("/login", (req, res) => {
   let userId = getId(users, "email", req.body.email);
 
   if (userId && users[userId].password == req.body.password){
-    console.log(req.body.username)
     res.cookie('user_id', userId)
     res.redirect('/urls')
   }else {
@@ -114,7 +112,6 @@ app.post("/login", (req, res) => {
 })
 
 app.get("/logout", (req, res) => {
-  console.log(req.body.username)
   res.clearCookie('user_id');
   res.redirect('/urls');
 })
