@@ -9,7 +9,7 @@
   </header>
   <p> <%= shortURL%>
     <form action="/urls/<%=shortURL%>/update" method="POST" >
-      <input id="longURL" type="text" name="newLongURL" placeholder="<%=longURL%>">
+      <input id="longURL" type="text" name="newLongURL" placeholder="<%=urls[shortURL]%>">
       <input type="submit" value="Update">
     </form>
 

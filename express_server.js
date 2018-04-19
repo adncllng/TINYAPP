@@ -85,12 +85,17 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  let userUrls = urlsForUserId(req.cookies.user_id);
+  if(userUrls.hasOwnProperty(req.params.id)){
   let templateVars = {
     user: users[req.cookies.user_id],
     shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id]
+    urls: userUrls
   };
   res.render("urls_show", templateVars);
+}else {
+  res.send("error:  you do not have permission")
+}
 });
 
 app.post("/urls/new", (req, res) => {
@@ -110,9 +115,14 @@ app.post("/urls/:id/delete",(req, res) => {
 })
 
 app.post("/urls/:id/update",(req, res) => {
-  urlDatabase[req.params.id] = req.body.newLongURL;
+  if(urlsForUserId(req.cookies.user_id).hasOwnProperty(req.params.id)){
+  urlDatabase[req.params.id].url = req.body.newLongURL;
+
   console.log(req.body)
   res.redirect('/urls')
+}else {
+  res.redirect('/urls');
+}
 })
 
 app.post("/login", (req, res) => {
