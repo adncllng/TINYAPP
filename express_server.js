@@ -58,6 +58,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
+    user: users[req.cookies.user_id],
     username: req.cookies["username"]
   }
   res.render("urls_new", templateVars);
@@ -65,15 +66,16 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"],
+    user: users[req.cookies.user_id],
     urls: urlDatabase
   };
-  // console.log(templateVars)
+   console.log(users)
   res.render("urls_index", templateVars);
 });
+
 app.get("/urls/:id", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"],
+    user: users[req.cookies.user_id],
     shortURL: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
@@ -100,16 +102,21 @@ app.post("/urls/:id/update",(req, res) => {
 })
 
 app.post("/login", (req, res) => {
-  console.log(req.body.username)
-  res.cookie('username', req.body.username)
-  res.cookies('password', req.body.password)
-  res.redirect('/urls')
+  let userId = getId(users, "email", req.body.email);
+
+  if (userId && users[userId].password == req.body.password){
+    console.log(req.body.username)
+    res.cookie('user_id', userId)
+    res.redirect('/urls')
+  }else {
+    res.send("Error 403 wrong password or email")
+  }
 })
 
-app.post("/logout", (req, res) => {
+app.get("/logout", (req, res) => {
   console.log(req.body.username)
-  res.clearCookie('username')
-  res.redirect('/urls')
+  res.clearCookie('user_id');
+  res.redirect('/urls');
 })
 
 app.post("/register", (req, res) => {
@@ -149,6 +156,12 @@ function contains(object,key, item){
     if (object[id][key] == item) return true
   }
 return false;
+}
+
+function getId(object, key, value){
+  for (let id in object){
+    if (object[id][key]==[value]) return id;
+  }
 }
 
 

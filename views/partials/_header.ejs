@@ -1,3 +1,11 @@
 <h1>TINY</h1>
-<a href = "/login">login</a>
-<a href = "/register">register</a>
+
+
+
+  <% if(user){ %>
+<h3><%=user.email%></h3>
+<a href="/logout">logout</a>
+ <% } else{ %>
+<a href="/login">login</a>
+<a href="/register">register</a>
+<% } %>
