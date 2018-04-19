@@ -10,8 +10,8 @@ const bodyParser = require("body-parser");
 
 app.use(function(req,res,next){
   console.log("the whole request", req.headers)
-  next()
-})
+  next();
+});
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -33,17 +33,17 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    hasedPassword: "purple-monkey-dinosaur"
   },
  "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    hashedPassword: "dishwasher-funk"
   },
   "i4f8yb": {
     id: "adsfadfs",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    hashedPassword: "dishwasher-funk"
   }
 }
 app.get("/login", (req, res) => {
@@ -59,9 +59,12 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log()
-  let longURL = urlDatabase[req.params.shortURL].url
+  if(urlDatabase.hasOwnProperty(req.params.shortURL)){
+  let longURL = urlDatabase[req.params.shortURL].url;
   res.redirect(longURL);
+}else{
+  res.send("400 Bad Request")
+}
 });
 
 app.get("/urls/new", (req, res) => {
@@ -94,7 +97,7 @@ app.get("/urls/:id", (req, res) => {
   };
   res.render("urls_show", templateVars);
 }else {
-  res.send("error:  you do not have permission")
+  res.send("Error 403:  forbidden")
 }
 });
 
@@ -105,13 +108,15 @@ app.post("/urls/new", (req, res) => {
     userID: req.cookies.user_id
   }
 
-  console.log(urlDatabase);  // debug statement to see POST parameters
-  res.redirect('/urls');        // Respond with 'Ok' (we will replace this)
+  console.log(urlDatabase);
+  res.redirect('/urls');
 });
 
 app.post("/urls/:id/delete",(req, res) => {
-  delete (urlDatabase[req.params.id])
-  res.redirect('/urls')
+ if(urlsForUserId(req.cookies.user_id).hasOwnProperty(req.params.id)){
+   delete (urlDatabase[req.params.id]);
+  res.redirect('/urls');
+  }else{}
 })
 
 app.post("/urls/:id/update",(req, res) => {
@@ -127,12 +132,11 @@ app.post("/urls/:id/update",(req, res) => {
 
 app.post("/login", (req, res) => {
   let userId = getId(users, "email", req.body.email);
-
-  if (userId && users[userId].password == req.body.password){
-    res.cookie('user_id', userId)
-    res.redirect('/urls')
-  }else {
-    res.send("Error 403 wrong password or email")
+  if (userId && bcrypt.compareSync(req.body.password, users[userId].hashedPassword)){
+    res.cookie('user_id', userId);
+    res.redirect('/urls');
+  } else {
+    res.send("Error 403 wrong password or email");
   }
 })
 
@@ -150,10 +154,13 @@ app.post("/register", (req, res) => {
     res.send('Error 404: email already exists!');
   }else {
   let user_id = generateRandomString();
+  let password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   users[user_id] = {
     email: req.body.email,
-    password: req.body.password
+    hashedPassword: hashedPassword
   }
+  console.log(res);
   res.cookie("user_id", user_id)
   res.redirect("/urls")
 }
