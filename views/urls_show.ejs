@@ -4,9 +4,7 @@
   <title>TinyApp</title>
 </head>
 <body>
-  <header>
   <%- include partials/_header %>
-  </header>
   <p> <%= shortURL%>
     <%if (!error) { %>
     <form action="/urls/<%=shortURL%>" method="POST" >

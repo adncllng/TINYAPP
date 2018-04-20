@@ -135,7 +135,7 @@ app.get("/urls", (req, res) => {
   };
   res.render("urls_index", templateVars);
 } else {
-    res.send("Error:")
+    res.send("h1>Error: 400</h1> <p>url does not exist</p> <a href='/'>back</a>")
 
 }
 });
@@ -163,7 +163,7 @@ app.get("/urls/:id", (req, res) => {
 
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect('/urls');
+  res.redirect('/');
 })
 
 app.post("/urls", (req, res) => {
