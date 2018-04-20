@@ -8,10 +8,14 @@
   <%- include partials/_header %>
   </header>
   <p> <%= shortURL%>
-    <form action="/urls/<%=shortURL%>/update" method="POST" >
+    <%if (!error) { %>
+    <form action="/urls/<%=shortURL%>" method="POST" >
       <input id="longURL" type="text" name="newLongURL" placeholder="<%=urls[shortURL]%>">
       <input type="submit" value="Update">
     </form>
+    <% } %>
+
+    <%if (error) { %> <p><%= error %> </p> <% } %>
 
 </body>
 </html>
