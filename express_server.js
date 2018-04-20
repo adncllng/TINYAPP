@@ -20,6 +20,7 @@ const error = {
   400: "Bad Request ",
   401: "Unauthorized ",
   403: "Forbidden ",
+  404: "not Found"
 }
 
 let urlDatabase = {
@@ -50,6 +51,7 @@ const users = {
     hashedPassword: "dishwasher-funk"
   }
 }
+ //helper functions ---------------------------------------------------------------------------------------------------------------------------
 
 function generateRandomString() {
   let randoString = "";
@@ -66,7 +68,7 @@ function getId(object, key, value){
   }
   return false;
 }
-
+//get urls for specific user
 function urlsForUserId(user_id){
   const urls = {};
   for (const short in urlDatabase){
@@ -76,6 +78,8 @@ function urlsForUserId(user_id){
   }
   return urls;
 }
+
+ //get requests -----------------------------------------------------------------------------------
 
 app.get("/", (req, res) => {
   if(req.session.user_id){
@@ -135,14 +139,13 @@ app.get("/urls", (req, res) => {
   };
   res.render("urls_index", templateVars);
 } else {
-    res.send("h1>Error: 400</h1> <p>url does not exist</p> <a href='/'>back</a>")
+    res.send("<h1>Error: 401</h1> <p>login to view your urls</p> <a href='/'>login</a>")
 
 }
 });
 
 app.get("/urls/:id", (req, res) => {
   let userUrls = urlsForUserId(req.session.user_id);
-
   if(urlDatabase[req.params.id]){
     let templateVars = {
       user: users[req.session.user_id],
@@ -153,13 +156,16 @@ app.get("/urls/:id", (req, res) => {
     if(userUrls[req.params.id]){
       res.render("urls_show", templateVars);
     } else {
-        templateVars = {...templateVars, error: error["403"]}
+      //include erorr in urls_show if user is not authorized
+        templateVars = {...templateVars, error: "error 401: Unauthorized, you can only edit urls you created."}
       res.render("urls_show", templateVars);
       }
   } else {
     res.redirect("/urls");
   }
 });
+
+//post requests -----------------------------------------------------------------------------------
 
 app.post("/logout", (req, res) => {
   req.session = null;
@@ -180,7 +186,7 @@ app.post("/urls/:id/delete",(req, res) => {
    delete (urlDatabase[req.params.id]);
   res.redirect('/urls');
   }else{
-    res.send(error["403"])
+    res.send(error[""])
   }
 })
 
@@ -189,7 +195,7 @@ app.post("/urls/:id",(req, res) => {
     urlDatabase[req.params.id].url = req.body.newLongURL;
     res.redirect('/urls');
 }else {
-  res.send(error["403"]);
+  res.send("<h1>Error: 401</h1> <p>login to access your urls</p> <a href='/login'>login</a>");
 }
 })
 
@@ -199,7 +205,7 @@ app.post("/login", (req, res) => {
     req.session.user_id = userId;
     res.redirect('/urls');
   } else {
-    res.send("<h1>Error: 403</h1> <p>incorrect email or password</p> <a href='/login'>try again</a>");
+    res.send("<h1>Error: 401</h1> <p>incorrect email or password</p> <a href='/login'>try again</a>");
   }
 })
 
