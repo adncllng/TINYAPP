@@ -1,17 +1,15 @@
 
-var cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session')
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
 const bcrypt = require('bcrypt');
-app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
+app.set("view engine", "ejs");
 
 app.use(cookieSession({
   name: 'session',
-  //WAHT??
-  keys: ["keyhuh","keywhat"],
-
+  keys: ["keyone","keytwo"],
   maxAge: 24 * 60 * 60 * 1000
 }))
 
@@ -47,8 +45,46 @@ const users = {
   }
 }
 
+function generateRandomString() {
+  let randoString = "";
+  while(randoString.length < 6){
+    let values = 'abcdefghijklmnopqrstuvwxyz1234567890';
+    randoString += values[Math.round(Math.random()*(values.length-1))];
+  }
+  return randoString;
+}
+//get id from database or return false
+function getId(object, key, value){
+  for (const id in object){
+    if (object[id][key] == [value]) return id;
+  }
+  return false;
+}
+
+function urlsForUserId(user_id){
+  const urls = {};
+  for (const short in urlDatabase){
+    if (urlDatabase[short].userID == user_id){
+      urls[short] = urlDatabase[short].url;
+    }
+  }
+  return urls;
+}
+
+app.get("/", (req, res) => {
+  if(req.session.user_id){
+  res.redirect("/urls");
+  } else {
+    res.redirect("/login")
+  }
+});
+
 app.get("/login", (req, res) => {
-  res.render("login");
+  let templateVars = {
+    user: users[req.session.user_id],
+    urls: urlsForUserId(req.session.user_id)
+  };
+  res.render("login", templateVars);
 });
 
 app.get("/register", (req, res) => {
@@ -59,17 +95,17 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  if(urlDatabase.hasOwnProperty(req.params.shortURL)){
-  let longURL = urlDatabase[req.params.shortURL].url;
-  res.redirect(longURL);
-}else{
-  res.send("400 Bad Request");
-}
+  if (urlDatabase[req.params.shortURL]) {
+    let longURL = urlDatabase[req.params.shortURL].url;
+    res.redirect(longURL);
+  } else {
+    res.send("Error: 400 Bad Request");
+  }
 });
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    user: users[req.session.user_id],
+    user: users[req.session.user_id]
   }
   if(templateVars.user){
     res.render("urls_new", templateVars);
@@ -88,17 +124,22 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   let userUrls = urlsForUserId(req.session.user_id);
-  if(userUrls.hasOwnProperty(req.params.id)){
-  let templateVars = {
-    user: users[req.session.user_id],
-    shortURL: req.params.id,
-    urls: userUrls
-  };
-  res.render("urls_show", templateVars);
+  if(userUrls[req.params.id]){
+    let templateVars = {
+      user: users[req.session.user_id],
+      shortURL: req.params.id,
+      urls: userUrls
+    };
+    res.render("urls_show", templateVars);
 }else {
   res.send("Error 403:  forbidden")
 }
 });
+
+app.get("/logout", (req, res) => {
+  req.session = null;
+  res.redirect('/urls');
+})
 
 app.post("/urls/new", (req, res) => {
   var shortURL = generateRandomString();
@@ -110,7 +151,7 @@ app.post("/urls/new", (req, res) => {
 });
 
 app.post("/urls/:id/delete",(req, res) => {
- if(urlsForUserId(req.session.user_id).hasOwnProperty(req.params.id)){
+ if(urlsForUserId(req.session.user_id)[req.params.id]){
    delete (urlDatabase[req.params.id]);
   res.redirect('/urls');
   }else{}
@@ -118,8 +159,8 @@ app.post("/urls/:id/delete",(req, res) => {
 
 app.post("/urls/:id/update",(req, res) => {
   if(urlsForUserId(req.session.user_id).hasOwnProperty(req.params.id)){
-  urlDatabase[req.params.id].url = req.body.newLongURL;
-  res.redirect('/urls');
+    urlDatabase[req.params.id].url = req.body.newLongURL;
+    res.redirect('/urls');
 }else {
   res.redirect('/urls');
 }
@@ -135,62 +176,26 @@ app.post("/login", (req, res) => {
   }
 })
 
-app.get("/logout", (req, res) => {
-  req.session = null;
-  res.redirect('/urls');
-})
-
 app.post("/register", (req, res) => {
   if(!req.body.email || !req.body.password ){
     res.send('Error 400: empty forms! ')
-  }else if (contains(users, "email", req.body.email)){
+  }else if (getId(users, "email", req.body.email)){
     res.send('Error 404: email already exists!');
   }else {
-  let user_id = generateRandomString();
-  let password = req.body.password;
-  const hashedPassword = bcrypt.hashSync(password, 10);
-  users[user_id] = {
-    email: req.body.email,
-    hashedPassword: hashedPassword
+    let user_id = generateRandomString();
+    let password = req.body.password;
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    users[user_id] = {
+      email: req.body.email,
+      hashedPassword: hashedPassword
+    }
+   req.session.user_id = user_id;
+   res.redirect("/urls")
   }
- req.session.user_id = user_id;
- res.redirect("/urls")
-}
 })
 
 app.listen(PORT, () => {
 });
 
-function generateRandomString() {
-  let randoString = "";
-  while(randoString.length < 6){
-    let values = 'abcdefghijklmnopqrstuvwxyz1234567890';
-    randoString += values[Math.round(Math.random()*(values.length-1))];
-  }
-  return randoString;
-}
-
-function contains(object,key, item){
-  for(let id in object){
-    if (object[id][key] == item) return true
-  }
-  return false;
-}
-
-function getId(object, key, value){
-  for (let id in object){
-    if (object[id][key]==[value]) return id;
-  }
-}
-
-function urlsForUserId(user_id){
-  let urls = {};
-  for(var short in urlDatabase){
-    if(urlDatabase[short].userID == user_id){
-      urls[short] = urlDatabase[short].url
-    }
-  }
-  return urls;
-}
 
 
