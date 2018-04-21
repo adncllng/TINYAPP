@@ -8,13 +8,14 @@
   <%- include partials/_header %>
   </header>
   <ul>
+
   <% Object.keys(urls).forEach(url => { %>
 
-    <li> <%= url %> : <%= urls[url] %>
+    <li  style="display: flex; flex-direction: row; justify-content: flex-start; align-items: baseline;"> <%= url %> ----> <%= urls[url] %>
+     <button  style="margin-left: 30px" href='/urls/<%=url%>'>edit</button>
       <form method="POST" action="/urls/<%=url%>/delete">
-      <button type="submit" value="Delete">DELETE</button>
+      <button type="submit" value="Delete">Delete</button>
      </form>
-     <a href='/urls/<%=url%>'>edit</a>
     </li>
 
   <% }) %>

@@ -55,7 +55,7 @@ const users = {
 
 function generateRandomString() {
   let randoString = "";
-  while(randoString.length < 6){
+  while (randoString.length < 6){
     let values = 'abcdefghijklmnopqrstuvwxyz1234567890';
     randoString += values[Math.round(Math.random()*(values.length-1))];
   }
@@ -64,7 +64,7 @@ function generateRandomString() {
 //get id from database or return false
 function getId(object, key, value){
   for (const id in object){
-    if (object[id][key] == [value]) return id;
+    if (object[id][key] === [value]) return id;
   }
   return false;
 }
@@ -82,7 +82,7 @@ function urlsForUserId(user_id){
  //get requests -----------------------------------------------------------------------------------
 
 app.get("/", (req, res) => {
-  if(req.session.user_id){
+  if (req.session.user_id){
   res.redirect("/urls");
   } else {
     res.redirect("/login");
@@ -90,7 +90,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  if(req.session.user_id){
+  if (req.session.user_id){
     res.redirect("/urls")
   }
   let templateVars = {
@@ -124,15 +124,15 @@ app.get("/urls/new", (req, res) => {
   let templateVars = {
     user: users[req.session.user_id]
   }
-  if(templateVars.user){
+  if (templateVars.user){
     res.render("urls_new", templateVars);
-  }else{
+  } else {
     res.redirect("/login")
   }
 });
 
 app.get("/urls", (req, res) => {
-  if(req.session.user_id){
+  if (req.session.user_id){
   let templateVars = {
     user: users[req.session.user_id],
     urls: urlsForUserId(req.session.user_id)
@@ -146,14 +146,14 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   let userUrls = urlsForUserId(req.session.user_id);
-  if(urlDatabase[req.params.id]){
+  if (urlDatabase[req.params.id]){
     let templateVars = {
       user: users[req.session.user_id],
       shortURL: req.params.id,
       urls: userUrls,
       error: ""
     };
-    if(userUrls[req.params.id]){
+    if (userUrls[req.params.id]){
       res.render("urls_show", templateVars);
     } else {
       //include erorr in urls_show if user is not authorized
@@ -182,19 +182,19 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete",(req, res) => {
- if(urlsForUserId(req.session.user_id)[req.params.id]){
+ if (urlsForUserId(req.session.user_id)[req.params.id]) {
    delete (urlDatabase[req.params.id]);
   res.redirect('/urls');
-  }else{
+  } else {
     res.send(error[""])
   }
 })
 
 app.post("/urls/:id",(req, res) => {
-  if(urlsForUserId(req.session.user_id).hasOwnProperty(req.params.id)){
+  if (urlsForUserId(req.session.user_id).hasOwnProperty(req.params.id)){
     urlDatabase[req.params.id].url = req.body.newLongURL;
     res.redirect('/urls');
-}else {
+} else {
   res.send("<h1>Error: 401</h1> <p>login to access your urls</p> <a href='/login'>login</a>");
 }
 })
@@ -210,11 +210,11 @@ app.post("/login", (req, res) => {
 })
 
 app.post("/register", (req, res) => {
-  if(!req.body.email || !req.body.password ){
+  if (!req.body.email || !req.body.password ){
     res.send('Error 400: empty forms! ')
-  }else if (getId(users, "email", req.body.email)){
+  } else if (getId(users, "email", req.body.email)){
     res.send("<h1>Error: 404</h1> <p>user already exists!</p> <a href='/register'>try again</a>");
-  }else {
+  } else {
     let user_id = generateRandomString();
     let password = req.body.password;
     const hashedPassword = bcrypt.hashSync(password, 10);
