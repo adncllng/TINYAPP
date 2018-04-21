@@ -192,12 +192,42 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete",(req, res) => {
- if (urlsForUserId(req.session.user_id)[req.params.id]) {
-   delete (urlDatabase[req.params.id]);
-  res.redirect('/urls');
+  const userUrls = urlsForUserId(req.session.user_id);
+  if(urlDatabase[req.params.id]){
+// if logged in
+    if(req.session.user_id){
+// and owns tinurl
+      if(userUrls[req.params.id]){
+        delete (urlDatabase[req.params.id]);
+        res.redirect('/urls');
+      }
+// does not own tinyurl
+      else {
+        res.send("<h1>Error: 401</h1> <p>Unauthorized, you can only edit urls you created</p> <a href='/'>login</a>");
+      }
+    }
+// not logged in
+    else {
+      res.send("<h1>Error: 401</h1> <p>login to view your urls</p> <a href='/'>login</a>")
+    }
+// tiny url does not exist
   } else {
-    res.send(error[""])
+    res.send("<h1>Error: 404</h1> <p>tinyurl not found</p> <a href='/'>home</a>");
   }
+
+
+
+
+
+
+
+
+ // if (urlsForUserId(req.session.user_id)[req.params.id]) {
+ //   delete (urlDatabase[req.params.id]);
+ //  res.redirect('/urls');
+ //  } else {
+ //    res.send(error[""])
+ //  }
 })
 
 app.post("/urls/:id",(req, res) => {
