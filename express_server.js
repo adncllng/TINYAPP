@@ -61,10 +61,10 @@ function generateRandomString() {
   }
   return randoString;
 }
-//get id from database or return false
+// get id from database or return false
 function getId(object, key, value){
   for (const id in object){
-    if (object[id][key] === [value]) return id;
+    if (object[id][key] === value) return id;
   }
   return false;
 }
@@ -145,23 +145,33 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  let userUrls = urlsForUserId(req.session.user_id);
-  if (urlDatabase[req.params.id]){
-    let templateVars = {
+  const userUrls = urlsForUserId(req.session.user_id);
+// if tinyurl exists
+  if (urlDatabase[req.params.id]) {
+// and logged in
+    if (req.session.user_id) {
+      let templateVars = {
       user: users[req.session.user_id],
       shortURL: req.params.id,
       urls: userUrls,
       error: ""
-    };
-    if (userUrls[req.params.id]){
-      res.render("urls_show", templateVars);
-    } else {
-      //include erorr in urls_show if user is not authorized
+      };
+// and has permission
+      if (userUrls[req.params.id]){
+        res.render("urls_show", templateVars);
+// does not have permission
+      } else {
         templateVars = {...templateVars, error: "error 401: Unauthorized, you can only edit urls you created."}
-      res.render("urls_show", templateVars);
+        res.render("urls_show", templateVars);
       }
-  } else {
-    res.redirect("/urls");
+// not logged in
+    } else {
+      res.send("<h1>Error: 401</h1> <p>login to view your urls</p> <a href='/'>login</a>");
+    }
+  }
+// tinyurl does not exists
+  else {
+    res.send("<h1>Error: 404</h1> <p>tinyurl not found</p> <a href='/'>home</a>");
   }
 });
 
@@ -173,7 +183,7 @@ app.post("/logout", (req, res) => {
 })
 
 app.post("/urls", (req, res) => {
-  var shortURL = generateRandomString();
+  const shortURL = generateRandomString();
   urlDatabase[shortURL] = {
     url: req.body.longURL,
     userID: req.session.user_id
@@ -200,7 +210,8 @@ app.post("/urls/:id",(req, res) => {
 })
 
 app.post("/login", (req, res) => {
-  let userId = getId(users, "email", req.body.email);
+// if user exists compare hashed passwords else send error
+  const userId = getId(users, "email", req.body.email);
   if (userId && bcrypt.compareSync(req.body.password, users[userId].hashedPassword)){
     req.session.user_id = userId;
     res.redirect('/urls');

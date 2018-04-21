@@ -12,15 +12,19 @@
   <% Object.keys(urls).forEach(url => { %>
 
     <li  style="display: flex; flex-direction: row; justify-content: flex-start; align-items: baseline;"> <%= url %> ----> <%= urls[url] %>
-     <button  style="margin-left: 30px" href='/urls/<%=url%>'>edit</button>
+
+      <form action="/urls/<%= url %>">
+        <input style="margin-left: 30px" type="submit" value="edit" />
+      </form>
+
       <form method="POST" action="/urls/<%=url%>/delete">
-      <button type="submit" value="Delete">Delete</button>
+        <input type="submit" value="Delete"></input>
      </form>
     </li>
 
   <% }) %>
   </ul>
-  <p><a href='/urls/new'>Create a New Short Link</a></p>
+  <p><a href='/urls/new'>New Short Link</a></p>
 
 </body>
 </html>
