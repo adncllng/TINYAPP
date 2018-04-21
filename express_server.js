@@ -13,15 +13,7 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000
 }))
 
-
 app.use(bodyParser.urlencoded({extended: true}));
-
-const error = {
-  400: "Bad Request ",
-  401: "Unauthorized ",
-  403: "Forbidden ",
-  404: "not Found"
-}
 
 let urlDatabase = {
   "b2xVn2": {
@@ -51,7 +43,7 @@ const users = {
     hashedPassword: "dishwasher-funk"
   }
 }
- //helper functions ---------------------------------------------------------------------------------------------------------------------------
+ //-----------------------------------------------helper functions --------------------------------------------
 
 function generateRandomString() {
   let randoString = "";
@@ -79,9 +71,9 @@ function urlsForUserId(user_id){
   return urls;
 }
 
- //get requests -----------------------------------------------------------------------------------
-
+ //-------------------------------------------------get requests --------------------------------------------------
 app.get("/", (req, res) => {
+// if logged in
   if (req.session.user_id){
   res.redirect("/urls");
   } else {
@@ -159,7 +151,7 @@ app.get("/urls/:id", (req, res) => {
 // and has permission
       if (userUrls[req.params.id]){
         res.render("urls_show", templateVars);
-// does not have permission
+// else exists and does not have permission
       } else {
         templateVars = {...templateVars, error: "error 401: Unauthorized, you can only edit urls you created."}
         res.render("urls_show", templateVars);
@@ -169,13 +161,13 @@ app.get("/urls/:id", (req, res) => {
       res.send("<h1>Error: 401</h1> <p>login to view your urls</p> <a href='/'>login</a>");
     }
   }
-// tinyurl does not exists
+// tinyurl does not exist
   else {
     res.send("<h1>Error: 404</h1> <p>tinyurl not found</p> <a href='/'>home</a>");
   }
 });
 
-//post requests -----------------------------------------------------------------------------------
+//---------------------------------------------------------post requests ----------------------------------
 
 app.post("/logout", (req, res) => {
   req.session = null;
@@ -214,20 +206,6 @@ app.post("/urls/:id/delete",(req, res) => {
   } else {
     res.send("<h1>Error: 404</h1> <p>tinyurl not found</p> <a href='/'>home</a>");
   }
-
-
-
-
-
-
-
-
- // if (urlsForUserId(req.session.user_id)[req.params.id]) {
- //   delete (urlDatabase[req.params.id]);
- //  res.redirect('/urls');
- //  } else {
- //    res.send(error[""])
- //  }
 })
 
 app.post("/urls/:id",(req, res) => {
@@ -240,7 +218,7 @@ app.post("/urls/:id",(req, res) => {
 })
 
 app.post("/login", (req, res) => {
-// if user exists compare hashed passwords else send error
+// if user exists compare hashed passwords and set session-cookie
   const userId = getId(users, "email", req.body.email);
   if (userId && bcrypt.compareSync(req.body.password, users[userId].hashedPassword)){
     req.session.user_id = userId;
@@ -256,14 +234,12 @@ app.post("/register", (req, res) => {
   } else if (getId(users, "email", req.body.email)){
     res.send("<h1>Error: 404</h1> <p>user already exists!</p> <a href='/register'>try again</a>");
   } else {
-    let user_id = generateRandomString();
-    let password = req.body.password;
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    users[user_id] = {
+    const userid = generateRandomString();
+    users[userid] = {
       email: req.body.email,
-      hashedPassword: hashedPassword
+      hashedPassword: bcrypt.hashSync(req.body.password, 10)
     }
-   req.session.user_id = user_id;
+   req.session.user_id = userid;
    res.redirect("/urls")
   }
 })
