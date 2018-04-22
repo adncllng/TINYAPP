@@ -1,83 +1,86 @@
 
-const cookieSession = require('cookie-session')
-const express = require("express");
-const methodOverride = require('method-override')
-const app = express();
 const PORT = process.env.PORT || 8080;
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const bodyParser = require("body-parser");
+const express = require("express");
+const methodOverride = require('method-override')
+
+const app = express();
+
 app.set("view engine", "ejs");
 
-app.use(methodOverride('_method'))
+app.use(methodOverride("_method"));
 
 app.use(cookieSession({
   name: 'session',
   keys: ["keyone","keytwo"],
   maxAge: 24 * 60 * 60 * 1000
-}))
+}));
 
 app.use(bodyParser.urlencoded({extended: true}));
 
 let urlDatabase = {
-  "b2xVn2": {
+  b2xVn2: {
     url: "http://www.lighthouselabs.ca",
     userID: "userRandomID"
   },
-  "b2xSn2":{
+  b2xSn2:{
     url: "http://www.lightshouselabs.ca",
     userID: "userRandomID2"
   }
 };
 
 const users = {
-  "userRandomID": {
+  userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
     hasedPassword: "purple-monkey-dinosaur"
   },
- "user2RandomID": {
+ user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
     hashedPassword: "dishwasher-funk"
   },
-  "i4f8yb": {
+  i4f8yb: {
     id: "adsfadfs",
     email: "user2@example.com",
     hashedPassword: "dishwasher-funk"
   }
-}
- //-----------------------------------------------helper functions --------------------------------------------
+};
+ // -------------------------------------helper functions --------------------------------------------
 
 function generateRandomString() {
   let randoString = "";
   while (randoString.length < 6){
-    let values = 'abcdefghijklmnopqrstuvwxyz1234567890';
+//excluding CAPS because urls - is that actually an issue?
+    const values = "abcdefghijklmnopqrstuvwxyz1234567890";
     randoString += values[Math.round(Math.random()*(values.length-1))];
   }
   return randoString;
 }
 // get id from database or return false
-function getId(object, key, value){
+function getId(object, key, value) {
   for (const id in object){
     if (object[id][key] === value) return id;
   }
   return false;
 }
 //get urls for specific user
-function urlsForUserId(user_id){
+function urlsForUserId(user_id) {
   const urls = {};
-  for (const short in urlDatabase){
-    if (urlDatabase[short].userID == user_id){
+  for (const short in urlDatabase) {
+    if (urlDatabase[short].userID === user_id) {
       urls[short] = urlDatabase[short].url;
     }
   }
   return urls;
 }
 
- //-------------------------------------------------get requests --------------------------------------------------
+ // ---------------------------------------get requests -------------------------------------------------
 app.get("/", (req, res) => {
 // if logged in
-  if (req.session.user_id){
+  if (req.session.user_id) {
   res.redirect("/urls");
   } else {
     res.redirect("/login");
@@ -88,7 +91,7 @@ app.get("/login", (req, res) => {
   if (req.session.user_id){
     res.redirect("/urls")
   }
-  let templateVars = {
+  const templateVars = {
     user: users[req.session.user_id],
     urls: urlsForUserId(req.session.user_id)
   };
@@ -96,22 +99,23 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  if (req.session.user_id){
+  if (req.session.user_id) {
     res.redirect("/urls");
   } else {
-  let templateVars = {
-    user: users[req.session.user_id]
-  }
-  res.render("register", templateVars)
+    const templateVars = {
+      user: users[req.session.user_id]
+    };
+  res.render("register", templateVars);
 }
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  // if url exists in database
   if (urlDatabase[req.params.shortURL]) {
-    let longURL = urlDatabase[req.params.shortURL].url;
+    const longURL = urlDatabase[req.params.shortURL].url;
     res.redirect(longURL);
   } else {
-    res.send("<h1>Error: 400</h1> <p>url does not exist</p> <a href='/'>back</a>");
+    res.status(404).send("<h1>Error: 404</h1> <p>url does not exist</p> <a href='/'>back</a>");
   }
 });
 
@@ -134,7 +138,7 @@ app.get("/urls", (req, res) => {
   };
   res.render("urls_index", templateVars);
 } else {
-    res.send("<h1>Error: 401</h1> <p>login to view your urls</p> <a href='/'>login</a>")
+    res.status(401).send("<h1>Error: 401</h1> <p>login to view your urls</p> <a href='/'>login</a>")
 
 }
 });
@@ -152,30 +156,30 @@ app.get("/urls/:id", (req, res) => {
       error: ""
       };
 // and has permission
-      if (userUrls[req.params.id]){
+      if (userUrls[req.params.id]) {
         res.render("urls_show", templateVars);
 // else exists and does not have permission
       } else {
-        templateVars = {...templateVars, error: "error 401: Unauthorized, you can only edit urls you created."}
+        templateVars = { ...templateVars, error: "error 401: Unauthorized, you can only edit urls you created." };
         res.render("urls_show", templateVars);
       }
 // not logged in
     } else {
-      res.send("<h1>Error: 401</h1> <p>login to view your urls</p> <a href='/'>login</a>");
+      res.status(401).send("<h1>Error: 401</h1> <p>login to view your urls</p> <a href='/'>login</a>");
     }
   }
 // tinyurl does not exist
   else {
-    res.send("<h1>Error: 404</h1> <p>tinyurl not found</p> <a href='/'>home</a>");
+    res.status(404).send("<h1>Error: 404</h1> <p>tinyurl not found</p> <a href='/'>home</a>");
   }
 });
 
-//---------------------------------------------------------post requests ----------------------------------
+// ------------------------------------------post requests ----------------------------------
 
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect('/');
-})
+});
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
@@ -189,36 +193,45 @@ app.post("/urls", (req, res) => {
 app.delete("/urls/:id/delete",(req, res) => {
   const userUrls = urlsForUserId(req.session.user_id);
   if(urlDatabase[req.params.id]){
-// if logged in
+    // if logged in
     if(req.session.user_id){
-// and owns tinurl
+      // and owns tinurl
       if(userUrls[req.params.id]){
         delete (urlDatabase[req.params.id]);
         res.redirect('/urls');
+      // does not own tinyurl
+      } else {
+        res.status(401).send("<h1>Error: 401</h1> <p>Unauthorized, you can only edit urls you created</p> <a href='/'>login</a>");
       }
-// does not own tinyurl
-      else {
-        res.send("<h1>Error: 401</h1> <p>Unauthorized, you can only edit urls you created</p> <a href='/'>login</a>");
-      }
+    // not logged in
+    } else {
+      res.status(401).send("<h1>Error: 401</h1> <p>login to view your urls</p> <a href='/'>login</a>")
     }
-// not logged in
-    else {
-      res.send("<h1>Error: 401</h1> <p>login to view your urls</p> <a href='/'>login</a>")
-    }
-// tiny url does not exist
+    // tiny url does not exist
   } else {
-    res.send("<h1>Error: 404</h1> <p>tinyurl not found</p> <a href='/'>home</a>");
+    res.status(404).send("<h1>Error: 404</h1> <p>tinyurl not found</p> <a href='/'>home</a>");
   }
 })
 
 app.put("/urls/:id",(req, res) => {
-  if (urlsForUserId(req.session.user_id).hasOwnProperty(req.params.id)){
-    urlDatabase[req.params.id].url = req.body.newLongURL;
-    res.redirect('/urls');
-} else {
-  res.send("<h1>Error: 401</h1> <p>login to access your urls</p> <a href='/login'>login</a>");
-}
-})
+  if (urlDatabase[req.params.id]) {
+    // if logged in
+    if (req.session.user_id) {
+      // if has access
+      if (urlsForUserId(req.session.user_id)[req.params.id]){
+        // update long url
+        urlDatabase[req.params.id].url = req.body.newLongURL;
+        res.redirect('/urls');
+      }
+    // not logged in
+    } else {
+      res.status(401).send("<h1>Error: 401</h1> <p>Unauthorized, you can only edit urls you created</p> <a href='/'>login</a>");
+    }
+  // tiny url does not exist
+  } else {
+    res.status(404).send("<h1>Error: 404</h1> <p>tinyurl not found</p> <a href='/'>home</a>");
+  }
+});
 
 app.post("/login", (req, res) => {
 // if user exists compare hashed passwords and set session-cookie
@@ -227,15 +240,15 @@ app.post("/login", (req, res) => {
     req.session.user_id = userId;
     res.redirect('/urls');
   } else {
-    res.send("<h1>Error: 401</h1> <p>incorrect email or password</p> <a href='/login'>try again</a>");
+    res.status(401).send("<h1>Error: 401</h1> <p>incorrect email or password</p> <a href='/login'>try again</a>");
   }
-})
+});
 
 app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password ){
-    res.send('Error 400: empty forms! ')
+    res.status(400).send("<h1>Error: 400</h1> <p>provide email and password</p> <a href='/register'>try again</a>")
   } else if (getId(users, "email", req.body.email)){
-    res.send("<h1>Error: 404</h1> <p>user already exists!</p> <a href='/register'>try again</a>");
+    res.status(403).send("<h1>Error: 403</h1> <p>user already exists!</p> <a href='/login'>login</a> or <a href='/register'>try again</a>");
   } else {
     const userid = generateRandomString();
     users[userid] = {
@@ -243,9 +256,9 @@ app.post("/register", (req, res) => {
       hashedPassword: bcrypt.hashSync(req.body.password, 10)
     }
    req.session.user_id = userid;
-   res.redirect("/urls")
+   res.redirect("/urls");
   }
-})
+});
 
 app.listen(PORT, () => {
 });
