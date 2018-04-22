@@ -1,11 +1,14 @@
 
 const cookieSession = require('cookie-session')
 const express = require("express");
+const methodOverride = require('method-override')
 const app = express();
 const PORT = process.env.PORT || 8080;
 const bcrypt = require('bcrypt');
 const bodyParser = require("body-parser");
 app.set("view engine", "ejs");
+
+app.use(methodOverride('_method'))
 
 app.use(cookieSession({
   name: 'session',
@@ -183,7 +186,7 @@ app.post("/urls", (req, res) => {
   res.redirect('/urls');
 });
 
-app.post("/urls/:id/delete",(req, res) => {
+app.delete("/urls/:id/delete",(req, res) => {
   const userUrls = urlsForUserId(req.session.user_id);
   if(urlDatabase[req.params.id]){
 // if logged in
@@ -208,7 +211,7 @@ app.post("/urls/:id/delete",(req, res) => {
   }
 })
 
-app.post("/urls/:id",(req, res) => {
+app.put("/urls/:id",(req, res) => {
   if (urlsForUserId(req.session.user_id).hasOwnProperty(req.params.id)){
     urlDatabase[req.params.id].url = req.body.newLongURL;
     res.redirect('/urls');

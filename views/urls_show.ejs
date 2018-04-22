@@ -10,7 +10,7 @@
 
     <%if (!error) { %>
     <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: baseline; width:45%">
-    <form action="/urls/<%=shortURL%>" method="POST" >
+    <form action="/urls/<%=shortURL%>?_method=PUT" method="POST" >
       <input id="longURL" type="text" name="newLongURL" placeholder="<%=urls[shortURL]%>">
       <input type="submit" value="Update">
     </form>
